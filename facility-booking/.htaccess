@@ -1,0 +1,13 @@
+RewriteEngine On
+
+# Block access to config and includes
+RewriteRule ^config/ - [F,L]
+RewriteRule ^includes/ - [F,L]
+
+# Allow direct access to API, assets, and uploads
+RewriteRule ^(api|assets|uploads)/ - [L]
+
+# Route everything else to index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [L]
