@@ -34,13 +34,25 @@ function shouldRunFeatureTask(string $sessionKey, int $intervalSeconds): bool {
     return true;
 }
 
+function tableExists(PDO $db, string $table): bool {
+    $stmt = $db->prepare("
+        SELECT COUNT(*)
+        FROM information_schema.TABLES
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = ?
+    ");
+    $stmt->execute([$table]);
+    return (int) $stmt->fetchColumn() > 0;
+}
+
 function ensureFeatureSchema(): void {
+    $db = getDB();
     $interval = defined('SCHEMA_SYNC_INTERVAL_SECONDS') ? (int) SCHEMA_SYNC_INTERVAL_SECONDS : 43200;
-    if (!shouldRunFeatureTask('__feature_schema_checked_at', max(60, $interval))) {
+    $mustCreateChatTable = !tableExists($db, 'support_messages');
+
+    if (!$mustCreateChatTable && !shouldRunFeatureTask('__feature_schema_checked_at', max(60, $interval))) {
         return;
     }
-
-    $db = getDB();
 
     $db->exec("
         CREATE TABLE IF NOT EXISTS notifications (
@@ -73,6 +85,24 @@ function ensureFeatureSchema(): void {
             INDEX idx_violations_booking (booking_id),
             CONSTRAINT fk_violations_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
             CONSTRAINT fk_violations_booking FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+
+    $db->exec("
+        CREATE TABLE IF NOT EXISTS support_messages (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            sender_id INT NOT NULL,
+            sender_role VARCHAR(20) NOT NULL,
+            message TEXT NOT NULL,
+            read_by_user TINYINT(1) NOT NULL DEFAULT 0,
+            read_by_admin TINYINT(1) NOT NULL DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_support_messages_user (user_id, created_at),
+            INDEX idx_support_messages_admin_read (read_by_admin, created_at),
+            INDEX idx_support_messages_user_read (read_by_user, created_at),
+            CONSTRAINT fk_support_messages_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            CONSTRAINT fk_support_messages_sender FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ");
 

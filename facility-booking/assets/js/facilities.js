@@ -28,6 +28,101 @@ const Facilities = (() => {
                 <a href="#facilities" class="btn btn-ghost btn-sm">Xem tất cả ${icon('arrow-right')}</a>
             </div>
             <div id="featuredFacilities">${Skeleton.cards(6)}</div>
+        </section>
+
+        <section class="mb-4">
+            <div class="row g-3">
+                <div class="col-lg-4">
+                    <div class="detail-section mb-0 h-100">
+                        <h3 class="detail-section-title">${icon('list-check')} Quy trình mượn phòng</h3>
+                        <div class="small text-muted mb-2">3 bước nhanh để hoàn tất một yêu cầu đặt lịch.</div>
+                        <div class="d-flex flex-column gap-2">
+                            <div><strong>1.</strong> Chọn cơ sở vật chất và thời gian phù hợp.</div>
+                            <div><strong>2.</strong> Gửi yêu cầu và theo dõi trạng thái duyệt trong hệ thống.</div>
+                            <div><strong>3.</strong> Đến đúng giờ để check-in và hoàn tất check-out sau sử dụng.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="detail-section mb-0 h-100">
+                        <h3 class="detail-section-title">${icon('shield-check')} Lưu ý quan trọng</h3>
+                        <div class="d-flex flex-column gap-2">
+                            <div>Không thể đặt lịch trong quá khứ hoặc trùng khung giờ đã có người sử dụng.</div>
+                            <div>Yêu cầu chưa được duyệt sẽ tự động hủy nếu đến giờ bắt đầu.</div>
+                            <div>Vi phạm nhiều lần có thể bị cảnh cáo hoặc tạm khóa quyền đặt lịch.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="detail-section mb-0 h-100">
+                        <h3 class="detail-section-title">${icon('question-circle')} Hỗ trợ thường gặp</h3>
+                        <div class="d-flex flex-column gap-2">
+                            <div><strong>Không thấy QR check-in?</strong> QR chỉ hiện từ thời điểm bắt đầu lịch.</div>
+                            <div><strong>Không thấy QR check-out?</strong> QR chỉ hiện sau khi đã qua 3/4 thời gian mượn.</div>
+                            <div><strong>Cần thay đổi thông tin?</strong> Liên hệ bộ phận quản trị qua hotline hoặc email hỗ trợ.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="detail-section mb-4">
+            <div class="row g-4 align-items-stretch">
+                <div class="col-lg-5">
+                    <h2 class="section-title mb-2">Thông tin liên hệ</h2>
+                    <p class="section-subtitle mb-4">Liên hệ bộ phận quản lý cơ sở vật chất khi cần hỗ trợ duyệt lịch, kiểm tra trạng thái phòng hoặc xử lý các tình huống phát sinh.</p>
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <div class="detail-section mb-0 h-100">
+                                <h3 class="detail-section-title">${icon('telephone')} Hotline hỗ trợ</h3>
+                                <div class="fw-semibold mb-1">024 3 868 1234</div>
+                                <div class="text-muted small">Hỗ trợ trong giờ hành chính, ưu tiên sự cố check-in/check-out.</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="detail-section mb-0 h-100">
+                                <h3 class="detail-section-title">${icon('envelope')} Email</h3>
+                                <div class="fw-semibold mb-1">cosovatchat@unibooking.edu.vn</div>
+                                <div class="text-muted small">Tiếp nhận phản hồi về lịch mượn, hư hỏng thiết bị và cập nhật thông tin phòng.</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="detail-section mb-0 h-100">
+                                <h3 class="detail-section-title">${icon('clock-history')} Giờ hỗ trợ</h3>
+                                <div class="fw-semibold mb-1">Thứ 2 - Thứ 7</div>
+                                <div class="text-muted small">07:30 - 17:30, nghỉ trưa 11:30 - 13:30.</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="detail-section mb-0 h-100">
+                                <h3 class="detail-section-title">${icon('geo-alt')} Văn phòng</h3>
+                                <div class="fw-semibold mb-1">Phòng Quản trị cơ sở vật chất</div>
+                                <div class="text-muted small">Tầng 1, Nhà điều hành, Cơ sở A, Hà Nội.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-7">
+                    <div class="detail-section mb-0 h-100">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                            <div>
+                                <h3 class="detail-section-title mb-1">${icon('map')} Bản đồ cơ sở</h3>
+                                <div class="text-muted small">Khu vực văn phòng hỗ trợ và trung tâm điều phối đặt lịch.</div>
+                            </div>
+                            <a class="btn btn-ghost btn-sm" href="https://maps.google.com/?q=Hoc+vien+Cong+nghe+Buu+chinh+Vien+thong" target="_blank" rel="noopener noreferrer">Mở Google Maps ${icon('box-arrow-up-right')}</a>
+                        </div>
+                        <div class="ratio ratio-16x9 rounded-4 overflow-hidden" style="border:1px solid var(--border-light)">
+                            <iframe
+                                src="https://www.google.com/maps?q=Hoc%20vien%20Cong%20nghe%20Buu%20chinh%20Vien%20thong&z=16&output=embed"
+                                style="border:0"
+                                loading="lazy"
+                                referrerpolicy="no-referrer-when-downgrade"
+                                allowfullscreen
+                                title="Bản đồ cơ sở hỗ trợ đặt lịch"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </section>`;
     }
 
@@ -60,7 +155,7 @@ const Facilities = (() => {
 
     async function loadFeatured() {
         try {
-            const res = await API.get('api/facilities/index.php?limit=6&status=active');
+            const res = await API.get('api/facilities/index.php?limit=6&status=active&sort=featured');
             const el = document.getElementById('featuredFacilities');
             if (!el) return;
 
@@ -331,7 +426,7 @@ const Facilities = (() => {
     function renderOperatingHours(hours) {
         if (!hours) return '<p class="text-muted" style="font-size:0.85rem">Không có thông tin.</p>';
         const dayLabels = { mon: 'Thứ 2', tue: 'Thứ 3', wed: 'Thứ 4', thu: 'Thứ 5', fri: 'Thứ 6', sat: 'Thứ 7', sun: 'CN' };
-        let parsed = typeof hours === 'string' ? JSON.parse(hours) : hours;
+        const parsed = typeof hours === 'string' ? JSON.parse(hours) : hours;
         let html = '<div style="font-size:0.85rem">';
         for (const [key, label] of Object.entries(dayLabels)) {
             const val = parsed[key] || 'closed';

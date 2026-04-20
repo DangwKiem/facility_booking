@@ -6,6 +6,7 @@ require_once __DIR__ . '/includes/auth_middleware.php';
 startSecureSession();
 $csrfToken = generateCsrfToken();
 $currentUser = optionalAuth();
+$assetVersion = APP_VERSION . '.' . @filemtime(__FILE__);
 ?>
 <!DOCTYPE html>
 <html lang="vi" data-bs-theme="light">
@@ -26,8 +27,8 @@ $currentUser = optionalAuth();
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
 
     <!-- App CSS -->
-    <link href="assets/css/style.css" rel="stylesheet">
-    <link href="assets/css/components.css" rel="stylesheet">
+    <link href="assets/css/style.css?v=<?= urlencode($assetVersion) ?>" rel="stylesheet">
+    <link href="assets/css/components.css?v=<?= urlencode($assetVersion) ?>" rel="stylesheet">
 </head>
 <body>
     <!-- Top Navbar -->
@@ -203,6 +204,14 @@ $currentUser = optionalAuth();
     <!-- Toast Container -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
 
+    <button class="support-chat-fab d-none chat-required" id="chatToggle" type="button" aria-label="Mở chat hỗ trợ">
+        <span class="support-chat-fab-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 16 16" fill="currentColor"><path d="M8 3a5 5 0 0 0-4.546 2.916.5.5 0 0 1-.454.284A3 3 0 0 0 3 12c.183 0 .36-.017.532-.05a.5.5 0 0 1 .533.22L5.5 14.5l1.63-1.358a.5.5 0 0 1 .38-.11A5 5 0 1 0 8 3m0-1a6 6 0 1 1-1.395 11.836l-2.285 1.904A.5.5 0 0 1 3.5 15v-2.13A4 4 0 0 1 2 6.126 6 6 0 0 1 8 2"/></svg>
+        </span>
+        <span class="support-chat-fab-label">Hỗ trợ</span>
+        <span class="support-chat-fab-badge d-none support-chat-count">0</span>
+    </button>
+
     <!-- Global Confirm Modal -->
     <div class="modal fade" id="confirmModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
@@ -215,6 +224,38 @@ $currentUser = optionalAuth();
                 <div class="modal-footer border-0">
                     <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Hủy</button>
                     <button type="button" class="btn btn-danger" id="confirmAction">Xác nhận</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="supportChatModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content glass-modal support-chat-modal">
+                <div class="modal-header border-0 pb-2">
+                    <div>
+                        <h5 class="modal-title" id="supportChatTitle">Hỗ trợ trực tuyến</h5>
+                        <div class="text-muted small">Trao đổi nhanh với quản trị viên ngay trong hệ thống.</div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body pt-0">
+                    <div class="support-chat-layout" id="supportChatLayout">
+                        <aside class="support-chat-sidebar admin-only" style="display:none">
+                            <div class="support-chat-sidebar-title">Người dùng cần hỗ trợ</div>
+                            <div id="supportThreadEmpty" class="text-muted small">Chưa có cuộc trò chuyện nào.</div>
+                            <div id="supportThreadList" class="support-thread-list"></div>
+                        </aside>
+                        <section class="support-chat-panel">
+                            <div id="supportChatMessages" class="support-chat-messages"></div>
+                            <form id="supportChatForm" class="support-chat-composer">
+                                <textarea id="supportChatInput" class="form-control" rows="3" placeholder="Nhập nội dung cần hỗ trợ..."></textarea>
+                                <div class="d-flex justify-content-end mt-2">
+                                    <button type="submit" class="btn btn-accent" id="supportChatSendBtn">Gửi tin nhắn</button>
+                                </div>
+                            </form>
+                        </section>
+                    </div>
                 </div>
             </div>
         </div>
@@ -234,14 +275,15 @@ $currentUser = optionalAuth();
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
 
     <!-- App JS Modules -->
-    <script src="assets/js/icons.js"></script>
-    <script src="assets/js/api.js"></script>
-    <script src="assets/js/components.js"></script>
-    <script src="assets/js/auth.js"></script>
-    <script src="assets/js/facilities.js"></script>
-    <script src="assets/js/bookings.js"></script>
-    <script src="assets/js/admin.js"></script>
-    <script src="assets/js/profile.js"></script>
-    <script src="assets/js/app.js"></script>
+    <script src="assets/js/icons.js?v=<?= urlencode($assetVersion) ?>"></script>
+    <script src="assets/js/api.js?v=<?= urlencode($assetVersion) ?>"></script>
+    <script src="assets/js/components.js?v=<?= urlencode($assetVersion) ?>"></script>
+    <script src="assets/js/auth.js?v=<?= urlencode($assetVersion) ?>"></script>
+    <script src="assets/js/facilities.js?v=<?= urlencode($assetVersion) ?>"></script>
+    <script src="assets/js/bookings.js?v=<?= urlencode($assetVersion) ?>"></script>
+    <script src="assets/js/admin.js?v=<?= urlencode($assetVersion) ?>"></script>
+    <script src="assets/js/profile.js?v=<?= urlencode($assetVersion) ?>"></script>
+    <script src="assets/js/chat.js?v=<?= urlencode($assetVersion) ?>"></script>
+    <script src="assets/js/app.js?v=<?= urlencode($assetVersion) ?>"></script>
 </body>
 </html>

@@ -660,13 +660,7 @@ const Admin = (() => {
                         <td>${b.title}</td>
                         <td style="font-size:0.8rem">${formatDateTime(b.start_time)}<br>→ ${formatDateTime(b.end_time)}</td>
                         <td>${statusBadge(b.status)}</td>
-                        <td>
-                            <button class="btn btn-sm btn-ghost me-1" onclick="Admin.showBookingDetail(${b.id})" title="Chi tiết">${icon('info-circle')}</button>
-                            ${b.status === 'pending' ? `
-                                <button class="btn btn-sm btn-accent me-1" onclick="Admin.approveBooking(${b.id})" title="Duyệt">${icon('check')}</button>
-                                <button class="btn btn-sm btn-ghost text-danger" onclick="Admin.showRejectModal(${b.id})" title="Từ chối">${icon('x')}</button>
-                            ` : ''}
-                        </td>
+                        <td>${renderAdminBookingActions(b)}</td>
                     </tr>`).join('')}
                 </tbody>
             </table></div></div>`;
@@ -684,6 +678,29 @@ const Admin = (() => {
     function updateBulkCount() {
         const el = document.getElementById('selectedCount');
         if (el) el.textContent = selectedBookingIds.size;
+    }
+
+    function renderAdminBookingActions(booking) {
+        const actions = [
+            `<button class="btn btn-sm btn-ghost me-1 mb-1" onclick="Admin.showBookingDetail(${booking.id})" title="Chi tiết">${icon('info-circle')}</button>`
+        ];
+
+        if (booking.status === 'pending') {
+            actions.push(`<button class="btn btn-sm btn-accent me-1 mb-1" onclick="Admin.approveBooking(${booking.id})" title="Duyệt">${icon('check')}</button>`);
+            actions.push(`<button class="btn btn-sm btn-ghost text-danger mb-1" onclick="Admin.showRejectModal(${booking.id})" title="Từ chối">${icon('x')}</button>`);
+            return actions.join('');
+        }
+
+        if (booking.status === 'approved') {
+            if (booking.qr_checkin_url) {
+                actions.push(`<button class="btn btn-sm btn-accent me-1 mb-1" onclick="Bookings.showQrModal(${booking.id}, 'checkin', '${booking.qr_checkin_url}')" title="QR vào">${icon('check-circle')}</button>`);
+            }
+            if (booking.qr_checkout_url) {
+                actions.push(`<button class="btn btn-sm btn-ghost me-1 mb-1" onclick="Bookings.showQrModal(${booking.id}, 'checkout', '${booking.qr_checkout_url}')" title="QR ra">${icon('box-arrow-right')}</button>`);
+            }
+        }
+
+        return actions.join('');
     }
 
     async function showBookingDetail(id) {

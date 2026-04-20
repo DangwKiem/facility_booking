@@ -45,6 +45,12 @@ if ($capacity) {
     $params[] = (int)$capacity;
 }
 
+$sort = getQueryParam('sort', 'latest');
+$orderBy = 'f.created_at DESC';
+if ($sort === 'featured') {
+    $orderBy = 'booking_request_count DESC, avg_rating DESC, review_count DESC, f.created_at DESC';
+}
+
 // Count
 $countStmt = $db->prepare("SELECT COUNT(*) FROM facilities f WHERE $where");
 $countStmt->execute($params);
@@ -54,11 +60,12 @@ $total = (int)$countStmt->fetchColumn();
 $sql = "
     SELECT f.*,
         (SELECT fi.image_path FROM facility_images fi WHERE fi.facility_id = f.id AND fi.is_primary = 1 LIMIT 1) AS primary_image,
+        (SELECT COUNT(*) FROM bookings b WHERE b.facility_id = f.id) AS booking_request_count,
         COALESCE((SELECT AVG(r.rating) FROM reviews r WHERE r.facility_id = f.id), 0) AS avg_rating,
         (SELECT COUNT(*) FROM reviews r WHERE r.facility_id = f.id) AS review_count
     FROM facilities f
     WHERE $where
-    ORDER BY f.created_at DESC
+    ORDER BY $orderBy
     LIMIT ? OFFSET ?
 ";
 

@@ -3,14 +3,19 @@
  */
 const App = (() => {
     let currentUser = window.APP_CONFIG.currentUser;
+    let notificationPollTimer = null;
+    let notificationsLoading = false;
+    let lastNotificationSignature = '';
 
     function init() {
         initTheme();
         updateUI();
         initNotifications();
+        Chat.init();
         bindNavigation();
         bindBackButton();
         bindLogout();
+        bindVisibilityRefresh();
         window.addEventListener('hashchange', handleRoute);
         handleRoute();
     }
@@ -155,8 +160,12 @@ const App = (() => {
     function setUser(user) {
         currentUser = user;
         window.APP_CONFIG.currentUser = user;
+        Chat.setUser(user);
         updateUI();
-        if (user) loadNotifications();
+        if (user) {
+            loadNotifications({ force: true });
+            Chat.refreshBadge();
+        }
     }
 
     function updateUI() {
@@ -191,8 +200,14 @@ const App = (() => {
             const dropdownNameEl = document.getElementById('dropdownUserName');
             if (nameEl) nameEl.textContent = currentUser.full_name;
             if (dropdownNameEl) dropdownNameEl.textContent = currentUser.full_name;
-            loadNotifications();
+            startNotificationPolling();
+            loadNotifications({ force: true, silent: true });
+            Chat.setUser(currentUser);
+            Chat.refreshBadge();
         } else {
+            stopNotificationPolling();
+            lastNotificationSignature = '';
+            Chat.setUser(null);
             const countEl = document.getElementById('notificationCount');
             const listEl = document.getElementById('notificationList');
             if (countEl) countEl.classList.add('d-none');
@@ -251,20 +266,57 @@ const App = (() => {
 
     function initNotifications() {
         document.getElementById('notificationToggle')?.addEventListener('click', () => {
-            if (currentUser) loadNotifications();
+            if (currentUser) loadNotifications({ force: true });
         });
         document.getElementById('markAllNotificationsBtn')?.addEventListener('click', async () => {
             try {
                 await API.put('api/notifications/read.php', {});
-                loadNotifications();
+                loadNotifications({ force: true });
             } catch (err) {
                 Toast.error(err.message);
             }
         });
     }
 
-    async function loadNotifications() {
+    function bindVisibilityRefresh() {
+        document.addEventListener('visibilitychange', () => {
+            if (!currentUser) return;
+            if (document.visibilityState === 'visible') {
+                startNotificationPolling();
+                loadNotifications({ force: true, silent: true });
+                Chat.refreshBadge();
+            } else {
+                stopNotificationPolling();
+            }
+        });
+
+        window.addEventListener('focus', () => {
+            if (currentUser) {
+                loadNotifications({ force: true, silent: true });
+                Chat.refreshBadge();
+            }
+        });
+    }
+
+    function startNotificationPolling() {
+        if (!currentUser || notificationPollTimer || document.visibilityState === 'hidden') return;
+        notificationPollTimer = window.setInterval(() => {
+            loadNotifications();
+            Chat.refreshBadge();
+        }, 3000);
+    }
+
+    function stopNotificationPolling() {
+        if (!notificationPollTimer) return;
+        clearInterval(notificationPollTimer);
+        notificationPollTimer = null;
+    }
+
+    async function loadNotifications(options = {}) {
         if (!currentUser) return;
+        if (notificationsLoading && !options.force) return;
+
+        notificationsLoading = true;
         try {
             const res = await API.get('api/notifications/index.php?limit=8');
             const countEl = document.getElementById('notificationCount');
@@ -272,10 +324,21 @@ const App = (() => {
             if (!countEl || !listEl) return;
 
             const unread = res.data?.unread || 0;
+            const items = res.data?.items || [];
+            const newestId = items[0]?.id || 0;
+            const signature = `${unread}:${newestId}:${items.length}`;
+
+            if (!options.silent && signature !== lastNotificationSignature && lastNotificationSignature !== '') {
+                const newest = items[0];
+                if (newest && !newest.is_read) {
+                    Toast.info(newest.title);
+                }
+            }
+
+            lastNotificationSignature = signature;
             countEl.textContent = unread > 9 ? '9+' : unread;
             countEl.classList.toggle('d-none', unread === 0);
 
-            const items = res.data?.items || [];
             if (!items.length) {
                 listEl.innerHTML = '<div class="text-muted small px-2 py-3">Chưa có thông báo nào.</div>';
                 return;
@@ -298,7 +361,7 @@ const App = (() => {
                 button.addEventListener('click', async () => {
                     try {
                         await API.put('api/notifications/read.php', { id: parseInt(button.dataset.id, 10) });
-                        loadNotifications();
+                        loadNotifications({ force: true });
                     } catch {}
                 });
             });
@@ -307,6 +370,9 @@ const App = (() => {
                 Notification.requestPermission().catch(() => {});
             }
         } catch {}
+        finally {
+            notificationsLoading = false;
+        }
     }
 
     function notificationIcon(type) {
