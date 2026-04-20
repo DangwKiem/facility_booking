@@ -444,6 +444,7 @@ const Bookings = (() => {
     function renderBookingActions(booking) {
         const actions = [];
         const hasEnded = new Date(booking.end_time) <= new Date();
+        const canReviewNow = Boolean(booking.checked_out_at) || hasEnded;
 
         if (booking.status === 'cancelled' || booking.status === 'rejected') {
             return '<span class="text-muted small">Không có</span>';
@@ -460,7 +461,7 @@ const Bookings = (() => {
             if (booking.qr_checkout_url) {
                 actions.push(`<button class="btn btn-ghost btn-sm me-1 mb-1" onclick="Bookings.showQrModal(${booking.id}, 'checkout', '${booking.qr_checkout_url}')">${icon('box-arrow-right')} QR ra</button>`);
             }
-            if (hasEnded) {
+            if (canReviewNow) {
                 if (!booking.has_review) {
                     actions.push(`<button class="btn btn-ghost btn-sm mb-1" onclick="Bookings.showReviewModal(${booking.id})">${icon('star-fill')} Đánh giá</button>`);
                 } else {

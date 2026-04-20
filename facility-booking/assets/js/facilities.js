@@ -296,6 +296,8 @@ const Facilities = (() => {
                         </div>
                         <div class="card-facility-footer">
                             <div class="facility-rating">
+                                <span>${icon('calendar-check')}</span>
+                                <span>${f.booking_request_count || 0}</span>
                                 <span class="star">${icon('star-fill')}</span>
                                 <span>${f.avg_rating ? parseFloat(f.avg_rating).toFixed(1) : '—'}</span>
                                 <span class="count">(${f.review_count || 0})</span>
@@ -359,6 +361,7 @@ const Facilities = (() => {
                     <div class="d-flex gap-3 flex-wrap" style="font-size:0.9rem">
                         <span>${icon('people')} ${f.capacity} người</span>
                         <span>${icon('geo-alt')} ${f.campus || ''} ${f.building || ''} ${f.floor || ''}</span>
+                        <span>${icon('calendar-check')} ${f.booking_request_count || 0} lượt đặt</span>
                         <span><span style="color:#f59e0b">${icon('star-fill')}</span> ${f.avg_rating ? parseFloat(f.avg_rating).toFixed(1) : '—'} (${f.review_count || 0} đánh giá)</span>
                     </div>
                 </div>

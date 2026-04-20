@@ -14,6 +14,7 @@ $db = getDB();
 
 $stmt = $db->prepare('
     SELECT f.*,
+        (SELECT COUNT(*) FROM bookings b WHERE b.facility_id = f.id) AS booking_request_count,
         COALESCE((SELECT AVG(r.rating) FROM reviews r WHERE r.facility_id = f.id), 0) AS avg_rating,
         (SELECT COUNT(*) FROM reviews r WHERE r.facility_id = f.id) AS review_count
     FROM facilities f WHERE f.id = ?

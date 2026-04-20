@@ -6,7 +6,22 @@ require_once __DIR__ . '/includes/auth_middleware.php';
 startSecureSession();
 $csrfToken = generateCsrfToken();
 $currentUser = optionalAuth();
-$assetVersion = APP_VERSION . '.' . @filemtime(__FILE__);
+$assetFiles = [
+    __FILE__,
+    __DIR__ . '/assets/css/style.css',
+    __DIR__ . '/assets/css/components.css',
+    __DIR__ . '/assets/js/icons.js',
+    __DIR__ . '/assets/js/api.js',
+    __DIR__ . '/assets/js/components.js',
+    __DIR__ . '/assets/js/auth.js',
+    __DIR__ . '/assets/js/facilities.js',
+    __DIR__ . '/assets/js/bookings.js',
+    __DIR__ . '/assets/js/admin.js',
+    __DIR__ . '/assets/js/profile.js',
+    __DIR__ . '/assets/js/chat.js',
+    __DIR__ . '/assets/js/app.js',
+];
+$assetVersion = APP_VERSION . '.' . max(array_map(static fn($file) => @filemtime($file) ?: 0, $assetFiles));
 ?>
 <!DOCTYPE html>
 <html lang="vi" data-bs-theme="light">
