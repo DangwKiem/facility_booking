@@ -149,8 +149,6 @@ const Bookings = (() => {
 
         if (calendar) calendar.destroy();
 
-        const normalizedFacilityId = facilityId ? String(facilityId).trim() : '';
-
         calendar = new FullCalendar.Calendar(calEl, {
             initialView: 'timeGridWeek',
             locale: 'vi',
@@ -173,46 +171,17 @@ const Bookings = (() => {
             nowIndicator: true,
             selectable: true,
             selectMirror: true,
-            unselectAuto: false, // Giữ vùng chọn khi click ra ngoài form
-            eventSources: [
-                {
-                    events: (info, successCallback, failureCallback) => {
-                        if (!normalizedFacilityId) {
-                            successCallback([]);
-                            return;
-                        }
-
-                        const params = new URLSearchParams({
-                            facility_id: normalizedFacilityId,
-                            start: info.startStr,
-                            end: info.endStr,
-                        });
-
-                        fetch(`${window.APP_CONFIG.baseUrl}/api/bookings/calendar.php?${params.toString()}`, {
-                            credentials: 'same-origin',
-                            headers: { Accept: 'application/json' },
-                        })
-                            .then(async (response) => {
-                                const data = await response.json();
-                                if (!response.ok) {
-                                    throw new Error(data?.message || 'Lỗi tải lịch');
-                                }
-                                successCallback(Array.isArray(data) ? data : []);
-                            })
-                            .catch((error) => {
-                                failureCallback(error);
-                                Toast.error(error.message || 'Lỗi tải lịch');
-                            });
-                    }
-                }
-            ],
+            unselectAuto: false,
+            eventSources: [{
+                url: `${window.APP_CONFIG.baseUrl}/api/bookings/calendar.php`,
+                method: 'GET',
+                extraParams: () => facilityId ? { facility_id: facilityId } : {},
+                failure: () => Toast.error('Lỗi tải lịch'),
+            }],
             select: (info) => {
-                // Cập nhật giá trị bắt đầu / kết thúc sang form
                 document.getElementById('bookStart').value = toLocalDatetime(info.start);
                 document.getElementById('bookEnd').value = toLocalDatetime(info.end);
                 document.getElementById('bookEnd')?.setAttribute('min', toLocalDatetime(info.start));
-
-                // Kiểm tra trùng lịch
                 checkConflict();
             },
             eventClick: (info) => {
@@ -265,7 +234,6 @@ const Bookings = (() => {
 
     async function handleSubmit(e) {
         e.preventDefault();
-
         const btn = document.getElementById('bookSubmitBtn');
         const facilityId = document.getElementById('bookFacilityId').value;
         const title = document.getElementById('bookTitle').value.trim();
@@ -284,7 +252,6 @@ const Bookings = (() => {
             Toast.warning('Thời gian kết thúc phải sau thời gian bắt đầu');
             return;
         }
-
         if (new Date(start) < new Date()) {
             Toast.warning('Chỉ được đặt lịch từ thời điểm hiện tại trở đi');
             return;
@@ -544,7 +511,7 @@ const Bookings = (() => {
         document.getElementById('qrPreviewImage').src = `https://quickchart.io/qr?size=240&text=${encodeURIComponent(qrUrl)}`;
         const button = document.getElementById('qrActionBtn');
         button.querySelector('.btn-text').textContent = action === 'checkin' ? 'Tự check-in ngay' : 'Tự check-out ngay';
-        button.onclick = () => markAttendance(action, bookingId);
+        button.onclick = () => markAttendance(action);
         new bootstrap.Modal(document.getElementById('qrModal')).show();
     }
 
