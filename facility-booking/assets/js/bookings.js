@@ -455,11 +455,11 @@ const Bookings = (() => {
         }
 
         if (booking.status === 'approved') {
-            if (booking.qr_checkin_url) {
-                actions.push(`<button class="btn btn-accent btn-sm me-1 mb-1" onclick="Bookings.showQrModal(${booking.id}, 'checkin', '${booking.qr_checkin_url}')">${icon('check-circle')} QR vào</button>`);
-            }
             if (booking.qr_checkout_url) {
                 actions.push(`<button class="btn btn-ghost btn-sm me-1 mb-1" onclick="Bookings.showQrModal(${booking.id}, 'checkout', '${booking.qr_checkout_url}')">${icon('box-arrow-right')} QR ra</button>`);
+            }
+            if (booking.qr_checkin_url) {
+                actions.push(`<button class="btn btn-accent btn-sm me-1 mb-1" onclick="Bookings.showQrModal(${booking.id}, 'checkin', '${booking.qr_checkin_url}')">${icon('check-circle')} QR vào</button>`);
             }
             if (canReviewNow) {
                 if (!booking.has_review) {

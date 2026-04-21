@@ -692,11 +692,11 @@ const Admin = (() => {
         }
 
         if (booking.status === 'approved') {
-            if (booking.qr_checkin_url) {
-                actions.push(`<button class="btn btn-sm btn-accent me-1 mb-1" onclick="Bookings.showQrModal(${booking.id}, 'checkin', '${booking.qr_checkin_url}')" title="QR vào">${icon('check-circle')}</button>`);
-            }
             if (booking.qr_checkout_url) {
                 actions.push(`<button class="btn btn-sm btn-ghost me-1 mb-1" onclick="Bookings.showQrModal(${booking.id}, 'checkout', '${booking.qr_checkout_url}')" title="QR ra">${icon('box-arrow-right')}</button>`);
+            }
+            if (booking.qr_checkin_url) {
+                actions.push(`<button class="btn btn-sm btn-accent me-1 mb-1" onclick="Bookings.showQrModal(${booking.id}, 'checkin', '${booking.qr_checkin_url}')" title="QR vào">${icon('check-circle')}</button>`);
             }
         }
 

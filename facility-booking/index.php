@@ -125,12 +125,12 @@ $assetVersion = APP_VERSION . '.' . max(array_map(static fn($file) => @filemtime
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 16a2 2 0 0 0 1.985-1.75h-3.97A2 2 0 0 0 8 16m.104-14.804A1 1 0 0 0 7 2.18v.634C5.286 3.252 4 4.83 4 6.734v2.932l-.717 1.434A.5.5 0 0 0 3.73 12h8.54a.5.5 0 0 0 .447-.9L12 9.666V6.734c0-1.904-1.286-3.482-3-3.92V2.18a1 1 0 0 0-.896-.984"/></svg>
                             <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" id="notificationCount">0</span>
                         </button>
-                        <div class="dropdown-menu dropdown-menu-end glass-dropdown p-0" style="width:min(360px,calc(100vw - 24px))">
+                        <div class="dropdown-menu dropdown-menu-end glass-dropdown notification-dropdown-menu p-0" style="width:min(360px,calc(100vw - 24px))">
                             <div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom" style="border-color:var(--border-light)!important">
                                 <strong>Thông báo</strong>
                                 <button type="button" class="btn btn-ghost btn-sm py-1 px-2" id="markAllNotificationsBtn">Đánh dấu đã đọc</button>
                             </div>
-                            <div id="notificationList" class="p-2">
+                            <div id="notificationList" class="notification-list p-2">
                                 <div class="text-muted small px-2 py-3">Chưa có thông báo nào.</div>
                             </div>
                         </div>

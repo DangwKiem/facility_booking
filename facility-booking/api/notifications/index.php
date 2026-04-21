@@ -8,15 +8,25 @@ $auth = requireAuth();
 $db = getDB();
 syncBookingAutomation($db);
 
-$limit = min(20, max(1, (int)getQueryParam('limit', 8)));
-$stmt = $db->prepare("
+$limit = (int) getQueryParam('limit', 0);
+
+$sql = "
     SELECT id, related_booking_id, type, channel, title, message, meta_json, is_read, created_at
     FROM notifications
     WHERE user_id = ?
     ORDER BY created_at DESC
-    LIMIT ?
-");
-$stmt->execute([$auth['id'], $limit]);
+";
+
+if ($limit > 0) {
+    $limit = min(200, max(1, $limit));
+    $sql .= " LIMIT ?";
+    $stmt = $db->prepare($sql);
+    $stmt->execute([$auth['id'], $limit]);
+} else {
+    $stmt = $db->prepare($sql);
+    $stmt->execute([$auth['id']]);
+}
+
 $items = $stmt->fetchAll();
 
 foreach ($items as &$item) {

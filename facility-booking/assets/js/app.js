@@ -318,7 +318,7 @@ const App = (() => {
 
         notificationsLoading = true;
         try {
-            const res = await API.get('api/notifications/index.php?limit=8');
+            const res = await API.get('api/notifications/index.php');
             const countEl = document.getElementById('notificationCount');
             const listEl = document.getElementById('notificationList');
             if (!countEl || !listEl) return;
