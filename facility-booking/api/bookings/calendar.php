@@ -14,13 +14,17 @@ $end = getQueryParam('end', '');
 $db = getDB();
 syncBookingAutomation($db);
 
+if (!$facilityId) {
+    header('Content-Type: application/json');
+    echo json_encode([], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 $where = "b.status = 'approved'";
 $params = [];
 
-if ($facilityId) {
-    $where .= " AND b.facility_id = ?";
-    $params[] = $facilityId;
-}
+$where .= " AND b.facility_id = ?";
+$params[] = $facilityId;
 
 if ($start) {
     $where .= " AND b.end_time >= ?";
