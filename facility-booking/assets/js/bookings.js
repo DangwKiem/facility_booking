@@ -443,35 +443,56 @@ const Bookings = (() => {
 
     function renderBookingActions(booking) {
         const actions = [];
+        
+        // Kiểm tra thời gian (giả định booking.end_time theo chuẩn ISO 8601)
         const hasEnded = new Date(booking.end_time) <= new Date();
         const canReviewNow = Boolean(booking.checked_out_at) || hasEnded;
 
+        // Xử lý sớm cho các trạng thái đã kết thúc
         if (booking.status === 'cancelled' || booking.status === 'rejected') {
             return '<span class="text-muted small">Không có</span>';
         }
 
         if (booking.status === 'pending') {
-            actions.push(`<button class="btn btn-ghost btn-sm me-1 mb-1" onclick="Bookings.cancelBooking(${booking.id})">${icon('x')} Hủy</button>`);
+            actions.push(
+                `<button class="btn btn-ghost btn-sm me-1 mb-1" onclick="Bookings.cancelBooking(${booking.id})">${icon('x')} Hủy</button>`
+            );
         }
 
         if (booking.status === 'approved') {
-            if (booking.qr_checkout_url) {
-                actions.push(`<button class="btn btn-ghost btn-sm me-1 mb-1" onclick="Bookings.showQrModal(${booking.id}, 'checkout', '${booking.qr_checkout_url}')">${icon('box-arrow-right')} QR ra</button>`);
-            }
+            // UX: Hiển thị "QR vào" TRƯỚC "QR ra"
             if (booking.qr_checkin_url) {
-                actions.push(`<button class="btn btn-accent btn-sm me-1 mb-1" onclick="Bookings.showQrModal(${booking.id}, 'checkin', '${booking.qr_checkin_url}')">${icon('check-circle')} QR vào</button>`);
+                // Mã hóa URL để đảm bảo an toàn cho chuỗi HTML
+                const safeCheckinUrl = encodeURI(booking.qr_checkin_url);
+                actions.push(
+                    `<button class="btn btn-accent btn-sm me-1 mb-1" onclick="Bookings.showQrModal(${booking.id}, 'checkin', '${safeCheckinUrl}')">${icon('check-circle')} QR vào</button>`
+                );
             }
+            
+            if (booking.qr_checkout_url) {
+                const safeCheckoutUrl = encodeURI(booking.qr_checkout_url);
+                actions.push(
+                    `<button class="btn btn-ghost btn-sm me-1 mb-1" onclick="Bookings.showQrModal(${booking.id}, 'checkout', '${safeCheckoutUrl}')">${icon('box-arrow-right')} QR ra</button>`
+                );
+            }
+            
+            // Logic hiển thị nút đánh giá
             if (canReviewNow) {
                 if (!booking.has_review) {
-                    actions.push(`<button class="btn btn-ghost btn-sm mb-1" onclick="Bookings.showReviewModal(${booking.id})">${icon('star-fill')} Đánh giá</button>`);
+                    actions.push(
+                        `<button class="btn btn-ghost btn-sm mb-1" onclick="Bookings.showReviewModal(${booking.id})">${icon('star-fill')} Đánh giá</button>`
+                    );
                 } else {
-                    actions.push(`<span class="text-muted small">${icon('check')} Đã đánh giá</span>`);
+                    actions.push(
+                        `<span class="text-muted small">${icon('check')} Đã đánh giá</span>`
+                    );
                 }
             }
         }
 
-        return actions.join('') || '<span class="text-muted small">Không có</span>';
-    }
+    // Ghép các nút lại với nhau, nếu mảng rỗng thì trả về chữ "Không có"
+    return actions.join('') || '<span class="text-muted small">Không có</span>';
+}
 
     function showReviewModal(bookingId) {
         document.getElementById('reviewBookingId').value = bookingId;
