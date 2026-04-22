@@ -5,7 +5,7 @@ apiBootstrap();
 if ($_SERVER['REQUEST_METHOD'] !== 'PUT') methodNotAllowed();
 
 verifyCsrfToken();
-requireAdmin();
+$admin = requireAdmin();
 
 $input = getJsonInput();
 $id = sanitizeInt($input['id'] ?? 0);
@@ -16,11 +16,11 @@ if (!in_array($action, ['block', 'unblock'], true)) error('Hành động không 
 
 $db = getDB();
 
-if ($action === 'block') {
-    $userStmt = $db->prepare("SELECT full_name, email FROM users WHERE id = ? AND role != 'admin' LIMIT 1");
-    $userStmt->execute([$id]);
-    $targetUser = $userStmt->fetch();
+$userStmt = $db->prepare("SELECT full_name, email FROM users WHERE id = ? AND role != 'admin' LIMIT 1");
+$userStmt->execute([$id]);
+$targetUser = $userStmt->fetch();
 
+if ($action === 'block') {
     $stmt = $db->prepare("
         UPDATE users
         SET status = 'blocked', blacklist_until = DATE_ADD(NOW(), INTERVAL 30 DAY),
@@ -51,6 +51,16 @@ if ($action === 'block') {
         );
     }
 
+    logAdminActivity(
+        $db,
+        $admin,
+        'block_user',
+        'user',
+        $id,
+        'Khóa người dùng',
+        'Đã khóa tài khoản ' . ($targetUser['full_name'] ?? ('User #' . $id)) . '.'
+    );
+
     success(null, 'Đã khóa tài khoản');
 }
 
@@ -67,6 +77,16 @@ createNotification(
     'Tài khoản được mở khóa',
     'Quyền đặt lịch của bạn đã được khôi phục.',
     'success'
+);
+
+logAdminActivity(
+    $db,
+    $admin,
+    'unblock_user',
+    'user',
+    $id,
+    'Mở khóa người dùng',
+    'Đã mở khóa tài khoản ' . ($targetUser['full_name'] ?? ('User #' . $id)) . '.'
 );
 
 success(null, 'Đã mở khóa tài khoản');

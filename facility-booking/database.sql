@@ -178,6 +178,25 @@ CREATE TABLE violations (
     FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
+-- -----------------------------------------
+-- 11. Admin Activity Logs
+-- -----------------------------------------
+CREATE TABLE admin_activity_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    admin_id INT NOT NULL,
+    admin_name VARCHAR(150) NOT NULL,
+    action VARCHAR(50) NOT NULL,
+    target_type VARCHAR(50) NOT NULL,
+    target_id INT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NULL,
+    meta_json TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_admin_activity_logs_created (created_at),
+    INDEX idx_admin_activity_logs_target (target_type, target_id),
+    FOREIGN KEY (admin_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 ALTER TABLE users
     ADD COLUMN blacklist_until DATETIME NULL,
     ADD COLUMN blacklist_reason VARCHAR(255) NULL,

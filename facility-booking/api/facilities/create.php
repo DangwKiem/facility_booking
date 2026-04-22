@@ -8,7 +8,7 @@ apiBootstrap();
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') methodNotAllowed();
 
 verifyCsrfToken();
-requireAdmin();
+$admin = requireAdmin();
 
 $name = sanitizeString($_POST['name'] ?? '');
 $type = $_POST['type'] ?? 'room';
@@ -67,5 +67,16 @@ if (!empty($_FILES['images'])) {
         $stmt->execute([$facilityId, $result['filename'], $isPrimary]);
     }
 }
+
+logAdminActivity(
+    $db,
+    $admin,
+    'create_facility',
+    'facility',
+    $facilityId,
+    'Thêm cơ sở vật chất',
+    'Đã thêm cơ sở vật chất ' . $name . '.',
+    ['type' => $type, 'status' => $status]
+);
 
 created(['id' => $facilityId], 'Thêm cơ sở vật chất thành công');

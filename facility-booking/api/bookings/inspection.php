@@ -1,6 +1,6 @@
 <?php
 /**
- * Admin booking inspection after check-out.
+ * Admin booking inspection after use.
  */
 require_once __DIR__ . '/../../includes/helpers.php';
 apiBootstrap();
@@ -27,7 +27,7 @@ $db = getDB();
 syncBookingAutomation($db);
 
 $stmt = $db->prepare("
-    SELECT b.id, b.user_id, b.status, b.checked_out_at, b.inspection_status, f.name AS facility_name
+    SELECT b.id, b.user_id, b.status, b.end_time, b.checked_out_at, b.inspection_status, f.name AS facility_name
     FROM bookings b
     JOIN facilities f ON f.id = b.facility_id
     WHERE b.id = ?
@@ -40,8 +40,10 @@ if (!$booking) notFound('Không tìm thấy lịch đặt');
 if ($booking['status'] !== 'approved') {
     error('Chỉ lịch đã duyệt mới được kiểm tra sau sử dụng');
 }
-if (empty($booking['checked_out_at'])) {
-    error('Chỉ kiểm tra được sau khi người dùng đã check-out');
+
+$canInspect = !empty($booking['checked_out_at']) || strtotime((string) $booking['end_time']) <= time();
+if (!$canInspect) {
+    error('Chỉ kiểm tra được sau khi người dùng đã check-out hoặc khi lịch đã kết thúc');
 }
 
 $update = $db->prepare("
@@ -67,6 +69,17 @@ createNotification(
     $inspectionStatus === 'ok' ? 'success' : 'warning',
     ['booking_id' => (int) $bookingId, 'inspection_status' => $inspectionStatus],
     (int) $bookingId
+);
+
+logAdminActivity(
+    $db,
+    $auth,
+    'inspect_booking',
+    'booking',
+    (int) $bookingId,
+    $inspectionStatus === 'ok' ? 'Xác nhận cơ sở vật chất bình thường' : 'Ghi nhận hư hỏng / vi phạm',
+    'Đã kiểm tra sau sử dụng cho lịch mượn ' . $booking['facility_name'] . '.',
+    ['inspection_status' => $inspectionStatus]
 );
 
 success([

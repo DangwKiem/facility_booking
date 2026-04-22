@@ -20,7 +20,7 @@ $admin = requireAdmin();
 $input = getJsonInput();
 
 $id = sanitizeInt($input['id'] ?? 0);
-$reason = trim((string)($input['reason'] ?? ''));
+$reason = trim((string) ($input['reason'] ?? ''));
 
 if (!$id) error('ID không hợp lệ');
 if ($reason === '') error('Vui lòng nhập lý do từ chối');
@@ -34,6 +34,7 @@ $stmt = $db->prepare("
 ");
 $stmt->execute([$id]);
 $booking = $stmt->fetch();
+
 if (!$booking) {
     error('Yêu cầu không tồn tại hoặc đã được xử lý');
 }
@@ -47,12 +48,23 @@ $update->execute([$reason, $admin['id'], $id]);
 
 createNotification(
     $db,
-    (int)$booking['user_id'],
+    (int) $booking['user_id'],
     'Yêu cầu đặt lịch bị từ chối',
     "Yêu cầu mượn {$booking['facility_name']} của bạn bị từ chối. Lý do: {$reason}",
     'error',
-    ['booking_id' => (int)$booking['id'], 'reason' => $reason],
-    (int)$booking['id']
+    ['booking_id' => (int) $booking['id'], 'reason' => $reason],
+    (int) $booking['id']
+);
+
+logAdminActivity(
+    $db,
+    $admin,
+    'reject_booking',
+    'booking',
+    (int) $booking['id'],
+    'Từ chối yêu cầu đặt lịch',
+    'Đã từ chối yêu cầu mượn ' . $booking['facility_name'] . '.',
+    ['reason' => $reason]
 );
 
 success(null, 'Đã từ chối yêu cầu');

@@ -56,4 +56,14 @@ createNotification(
     (int) $booking['id']
 );
 
+logAdminActivity(
+    $db,
+    $admin,
+    'approve_booking',
+    'booking',
+    (int) $booking['id'],
+    'Duyệt yêu cầu đặt lịch',
+    'Đã duyệt yêu cầu mượn ' . $booking['facility_name'] . '.'
+);
+
 success(null, 'Đã duyệt yêu cầu');

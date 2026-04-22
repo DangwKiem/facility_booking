@@ -31,5 +31,16 @@ $stmt = $db->prepare("
 $params = array_merge([$admin['id']], $ids);
 $stmt->execute($params);
 
+logAdminActivity(
+    $db,
+    $admin,
+    'bulk_approve_bookings',
+    'booking',
+    null,
+    'Duyệt hàng loạt yêu cầu đặt lịch',
+    'Đã thực hiện duyệt hàng loạt ' . $stmt->rowCount() . ' yêu cầu đặt lịch.',
+    ['ids' => $ids, 'approved_count' => $stmt->rowCount()]
+);
+
 $count = $stmt->rowCount();
 success(['approved_count' => $count], "Đã duyệt $count yêu cầu");

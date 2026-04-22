@@ -8,7 +8,7 @@ apiBootstrap();
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') methodNotAllowed();
 
 verifyCsrfToken();
-requireAdmin();
+$admin = requireAdmin();
 
 $id = sanitizeInt($_POST['id'] ?? 0);
 if (!$id) error('ID không hợp lệ');
@@ -69,5 +69,16 @@ if (!empty($_FILES['images'])) {
         $stmt->execute([$id, $result['filename']]);
     }
 }
+
+logAdminActivity(
+    $db,
+    $admin,
+    'update_facility',
+    'facility',
+    $id,
+    'Cập nhật cơ sở vật chất',
+    'Đã cập nhật thông tin cơ sở vật chất ' . $name . '.',
+    ['type' => $type, 'status' => $status]
+);
 
 success(null, 'Cập nhật thành công');

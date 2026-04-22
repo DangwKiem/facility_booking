@@ -85,6 +85,9 @@ const App = (() => {
                 } else if (subRoute === 'bookings') {
                     html = Admin.renderBookings();
                     afterRender = () => Admin.bindBookings();
+                } else if (subRoute === 'logs') {
+                    html = Admin.renderLogs();
+                    afterRender = () => Admin.initLogs();
                 } else if (subRoute === 'users') {
                     html = Admin.renderUsers();
                     afterRender = () => Admin.initUsers();

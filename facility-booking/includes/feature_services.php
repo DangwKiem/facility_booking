@@ -106,6 +106,24 @@ function ensureFeatureSchema(): void {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ");
 
+    $db->exec("
+        CREATE TABLE IF NOT EXISTS admin_activity_logs (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            admin_id INT NOT NULL,
+            admin_name VARCHAR(150) NOT NULL,
+            action VARCHAR(50) NOT NULL,
+            target_type VARCHAR(50) NOT NULL,
+            target_id INT NULL,
+            title VARCHAR(255) NOT NULL,
+            description TEXT NULL,
+            meta_json TEXT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_admin_activity_logs_created (created_at),
+            INDEX idx_admin_activity_logs_target (target_type, target_id),
+            CONSTRAINT fk_admin_activity_logs_admin FOREIGN KEY (admin_id) REFERENCES users(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+
     addColumnIfMissing($db, 'users', 'blacklist_until', 'DATETIME NULL AFTER status');
     addColumnIfMissing($db, 'users', 'blacklist_reason', 'VARCHAR(255) NULL AFTER blacklist_until');
     addColumnIfMissing($db, 'users', 'last_notification_read_at', 'DATETIME NULL AFTER blacklist_reason');
@@ -440,6 +458,34 @@ function notifyAdmins(
     foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $adminId) {
         createNotification($db, (int) $adminId, $title, $message, $type, $meta, $relatedBookingId);
     }
+}
+
+function logAdminActivity(
+    PDO $db,
+    array $admin,
+    string $action,
+    string $targetType,
+    ?int $targetId,
+    string $title,
+    ?string $description = null,
+    array $meta = []
+): void {
+    $stmt = $db->prepare("
+        INSERT INTO admin_activity_logs (
+            admin_id, admin_name, action, target_type, target_id, title, description, meta_json
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ");
+    $stmt->execute([
+        (int) ($admin['id'] ?? 0),
+        (string) ($admin['full_name'] ?? $admin['name'] ?? 'Quản trị viên'),
+        $action,
+        $targetType,
+        $targetId,
+        $title,
+        $description,
+        $meta ? json_encode($meta, JSON_UNESCAPED_UNICODE) : null,
+    ]);
 }
 
 function getQrPayloadUrl(int $bookingId, string $action): string {

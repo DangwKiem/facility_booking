@@ -2,6 +2,10 @@
  * Admin Module - Dashboard, facility management, booking approval, user management.
  */
 const Admin = (() => {
+    let adminLogPage = 1;
+    let adminLogAction = '';
+    let adminLogTargetType = '';
+    let adminLogSearch = '';
 
     /* --- Admin Dashboard --- */
     function renderDashboard() {
@@ -30,6 +34,7 @@ const Admin = (() => {
                         <a href="#admin/facilities" class="btn btn-ghost text-start">${icon('building-add')} Quản lý cơ sở vật chất</a>
                         <a href="#admin/bookings" class="btn btn-ghost text-start">${icon('calendar-check')} Duyệt yêu cầu</a>
                         <a href="#admin/users" class="btn btn-ghost text-start">${icon('people')} Quản lý người dùng</a>
+                        <a href="#admin/logs" class="btn btn-ghost text-start">${icon('journal-text')} Nhật ký hoạt động</a>
                     </div>
                 </div>
             </div>
@@ -289,6 +294,153 @@ const Admin = (() => {
         }
 
         new bootstrap.Modal(document.getElementById('violationDetailModal')).show();
+    }
+
+    function renderLogs() {
+        return `
+        <div class="mb-3"><a href="#admin/dashboard" class="btn btn-ghost btn-sm">${icon('arrow-left')} Bảng điều khiển</a></div>
+        <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap mb-3">
+            <div>
+                <h1 class="section-title">Nhật ký hoạt động</h1>
+                <p class="section-subtitle">Theo dõi các thao tác quản trị đã thực hiện trên hệ thống</p>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-medium">Loại thao tác</label>
+                    <select class="form-select" id="adminLogActionFilter">
+                        <option value="">Tất cả thao tác</option>
+                        <option value="approve_booking">Duyệt yêu cầu</option>
+                        <option value="reject_booking">Từ chối yêu cầu</option>
+                        <option value="bulk_approve_bookings">Duyệt hàng loạt</option>
+                        <option value="inspect_booking">Kiểm tra sau check-out</option>
+                        <option value="block_user">Khóa người dùng</option>
+                        <option value="unblock_user">Mở khóa người dùng</option>
+                        <option value="create_facility">Thêm cơ sở vật chất</option>
+                        <option value="update_facility">Cập nhật cơ sở vật chất</option>
+                        <option value="delete_facility">Xóa cơ sở vật chất</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-medium">Đối tượng</label>
+                    <select class="form-select" id="adminLogTargetFilter">
+                        <option value="">Tất cả đối tượng</option>
+                        <option value="booking">Yêu cầu đặt lịch</option>
+                        <option value="user">Người dùng</option>
+                        <option value="facility">Cơ sở vật chất</option>
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label fw-medium">Tìm kiếm</label>
+                    <div class="d-flex gap-2">
+                        <input type="text" class="form-control" id="adminLogSearchInput" placeholder="Tìm theo tiêu đề, mô tả, người thực hiện...">
+                        <button class="btn btn-accent" id="adminLogSearchBtn">${icon('search')}</button>
+                    </div>
+                </div>
+            </div>
+            <div id="adminLogList">${Skeleton.table(4, 5)}</div>
+            <div id="adminLogPagination" class="mt-3 d-flex justify-content-center"></div>
+        </div>`;
+    }
+
+    function initLogs() {
+        document.getElementById('adminLogActionFilter')?.addEventListener('change', (e) => {
+            adminLogAction = e.target.value;
+            adminLogPage = 1;
+            loadAdminLogs();
+        });
+
+        document.getElementById('adminLogTargetFilter')?.addEventListener('change', (e) => {
+            adminLogTargetType = e.target.value;
+            adminLogPage = 1;
+            loadAdminLogs();
+        });
+
+        document.getElementById('adminLogSearchBtn')?.addEventListener('click', () => {
+            adminLogSearch = document.getElementById('adminLogSearchInput')?.value.trim() || '';
+            adminLogPage = 1;
+            loadAdminLogs();
+        });
+
+        document.getElementById('adminLogSearchInput')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('adminLogSearchBtn')?.click();
+            }
+        });
+
+        loadAdminLogs();
+    }
+
+    async function loadAdminLogs() {
+        const listEl = document.getElementById('adminLogList');
+        const paginationEl = document.getElementById('adminLogPagination');
+        if (!listEl || !paginationEl) return;
+
+        listEl.innerHTML = Skeleton.table(4, 5);
+
+        const params = new URLSearchParams({ page: adminLogPage, limit: 12 });
+        if (adminLogAction) params.set('action', adminLogAction);
+        if (adminLogTargetType) params.set('target_type', adminLogTargetType);
+        if (adminLogSearch) params.set('search', adminLogSearch);
+
+        try {
+            const res = await API.get(`api/admin/logs.php?${params}`);
+            const data = res.data || {};
+
+            if (!data.items?.length) {
+                listEl.innerHTML = emptyState('journal-text', 'Chưa có nhật ký', 'Chưa có thao tác quản trị nào được ghi nhận.');
+                paginationEl.innerHTML = '';
+                return;
+            }
+
+            listEl.innerHTML = `
+                <div class="table-responsive">
+                    <table class="data-table table">
+                        <thead>
+                            <tr>
+                                <th>Thời gian</th>
+                                <th>Người thực hiện</th>
+                                <th>Thao tác</th>
+                                <th>Đối tượng</th>
+                                <th>Mô tả</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.items.map((item) => `
+                                <tr>
+                                    <td style="font-size:0.85rem">${formatDateTime(item.created_at)}</td>
+                                    <td class="fw-medium">${item.admin_name || '-'}</td>
+                                    <td>${item.title || '-'}</td>
+                                    <td>${formatAdminLogTarget(item)}</td>
+                                    <td style="font-size:0.9rem">${item.description || '-'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            paginationEl.innerHTML = Pagination.render(data.page, data.total_pages, (page) => {
+                adminLogPage = page;
+                loadAdminLogs();
+            });
+        } catch (err) {
+            listEl.innerHTML = emptyState('exclamation-triangle', 'Lỗi', err.message);
+            paginationEl.innerHTML = '';
+        }
+    }
+
+    function formatAdminLogTarget(item) {
+        const labelMap = {
+            booking: 'Yêu cầu đặt lịch',
+            user: 'Người dùng',
+            facility: 'Cơ sở vật chất',
+        };
+        const label = labelMap[item.target_type] || item.target_type || '-';
+        return item.target_id ? `${label} #${item.target_id}` : label;
     }
 
     /* --- Admin: Manage Facilities --- */
@@ -692,6 +844,18 @@ const Admin = (() => {
         }
 
         if (booking.status === 'approved') {
+            if (canInspectBooking(booking)) {
+                const inspectionClass = getInspectionToneClass(booking.inspection_status, booking.inspected_at);
+                actions.push(`
+                    <button
+                        class="btn btn-sm btn-ghost me-1 mb-1"
+                        onclick="Admin.showBookingDetail(${booking.id})"
+                        title="${getInspectionStatusLabel(booking.inspection_status, booking.inspected_at)}"
+                    >
+                        <span class="${inspectionClass}">${icon('shield-check')}</span>
+                    </button>
+                `);
+            }
             if (booking.qr_checkout_url) {
                 actions.push(`<button class="btn btn-sm btn-ghost me-1 mb-1" onclick="Bookings.showQrModal(${booking.id}, 'checkout', '${booking.qr_checkout_url}')" title="QR ra">${icon('box-arrow-right')}</button>`);
             }
@@ -735,14 +899,17 @@ const Admin = (() => {
                 </div>`
                 : '<span class="text-muted">Không có file đính kèm</span>';
 
-            const inspectionHtml = b.checked_out_at ? `
+            const inspectionReady = canInspectBooking(b);
+            const inspectionTimeLabel = b.checked_out_at ? 'Thời điểm check-out' : 'Thời điểm kết thúc';
+            const inspectionTimeValue = b.checked_out_at ? formatDateTime(b.checked_out_at) : formatDateTime(b.end_time);
+            const inspectionHtml = inspectionReady ? `
                 <div class="col-12">
                     <div class="detail-section mb-0">
-                        <h3 class="detail-section-title">${icon('shield-check')} Kiểm tra sau check-out</h3>
+                        <h3 class="detail-section-title">${icon('shield-check')} Kiểm tra sau sử dụng</h3>
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <div class="small text-muted mb-1">Trạng thái hiện tại</div>
-                                <div class="fw-semibold">${formatInspectionStatus(b.inspection_status)}</div>
+                                <div class="fw-semibold ${getInspectionToneClass(b.inspection_status, b.inspected_at)}">${getInspectionStatusLabel(b.inspection_status, b.inspected_at)}</div>
                             </div>
                             <div class="col-md-6">
                                 <div class="small text-muted mb-1">Đã kiểm tra lúc</div>
@@ -753,8 +920,8 @@ const Admin = (() => {
                                 <div>${b.inspected_by_name || '-'}</div>
                             </div>
                             <div class="col-md-6">
-                                <div class="small text-muted mb-1">Thời điểm check-out</div>
-                                <div>${formatDateTime(b.checked_out_at)}</div>
+                                <div class="small text-muted mb-1">${inspectionTimeLabel}</div>
+                                <div>${inspectionTimeValue}</div>
                             </div>
                             <div class="col-12">
                                 <label class="form-label fw-medium">Ghi chú kiểm tra</label>
@@ -1142,7 +1309,8 @@ const Admin = (() => {
         return map[type] || type;
     }
 
-    function formatInspectionStatus(status) {
+    function getInspectionStatusLabel(status, inspectedAt = null) {
+        if (!inspectedAt) return 'Chưa kiểm tra';
         const map = {
             ok: 'Đã xác nhận bình thường',
             damaged: 'Đã ghi nhận hư hỏng / vi phạm',
@@ -1150,8 +1318,22 @@ const Admin = (() => {
         return map[status] || 'Chưa kiểm tra';
     }
 
+    function getInspectionToneClass(status, inspectedAt = null) {
+        if (!inspectedAt) return 'text-warning';
+        if (status === 'ok') return 'text-success';
+        if (status === 'damaged') return 'text-danger';
+        return 'text-warning';
+    }
+
+    function canInspectBooking(booking) {
+        if (!booking || booking.status !== 'approved') return false;
+        if (booking.checked_out_at) return true;
+        const endTime = booking.end_time ? new Date(booking.end_time).getTime() : NaN;
+        return Number.isFinite(endTime) && Date.now() >= endTime;
+    }
+
     return {
-        renderDashboard, initDashboard,
+        renderDashboard, initDashboard, renderLogs, initLogs,
         renderFacilities, initFacilities, showFacilityModal, editFacility, saveFacility, deleteFacility,
         renderBookings, bindBookings, approveBooking, showBookingDetail, showRejectModal, submitReject, bulkApprove, toggleCheck, showViolationDetailsModal, submitInspection,
         renderUsers, initUsers, showImportModal, importUsers, showEditUser, saveUserEdit, toggleUserBlock,
